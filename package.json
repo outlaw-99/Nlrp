@@ -1,0 +1,16 @@
+{
+  "name": "nlrp-suggestions-web",
+  "version": "1.0.0",
+  "description": "NAIJA LIFE ROLEPLAY (NL:RP) Standalone Suggestions & Live Players Website for Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0"
+  }
+}

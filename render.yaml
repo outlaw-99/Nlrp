@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: nlrp-suggestions-portal
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SAMP_SERVER_IP
+        value: 51.83.49.125
+      - key: SAMP_SERVER_PORT
+        value: 17509
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
