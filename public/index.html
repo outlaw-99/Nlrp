@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Suggestions | Naija Life Roleplay</title><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
+<title>Suggestions | Naija Life Roleplay</title><meta name="theme-color" content="#0d1110"><meta name="description" content="Suggest and vote on updates for Naija Life Roleplay, and see who is online."><meta property="og:title" content="Naija Life Roleplay"><meta property="og:description" content="Suggest and vote on updates for Naija Life Roleplay, and see who is online."><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
 <body>
 <section class="banner"><div class="wrap">
 <h1>Naija Life Roleplay</h1>
@@ -24,11 +24,12 @@
 <aside><div class="box"><h2>Join the server</h2>
 <dl><dt>Address</dt><dd class="mono" id="ip2">-</dd><dt>Status</dt><dd id="st">-</dd><dt>Players</dt><dd id="pl">-</dd></dl>
 <div class="meter"><i id="mt" style="width:0"></i></div>
-<a class="btn pri" id="go" href="#">Launch SA-MP</a> <a class="btn" href="players.html">Who is online</a></div></aside>
+<ol class="steps" id="steps"></ol><div class="stack"><a class="btn pri" id="go" href="#">Launch SA-MP</a><button class="btn" id="cp2" type="button"></button><a class="btn" href="players.html">Who is online</a></div></div>
+<div class="box" style="margin-top:20px"><h2>Community</h2><div class="stack" id="com"></div></div></aside>
 </div></main>
 <script src="site.js"></script>
 <script>
-shell('s');$('#sub').innerHTML=icon('send')+'Submit suggestion';
+shell('s');$('#com').innerHTML=comLinks();$('#steps').innerHTML=joinSteps();$('#sub').innerHTML=icon('send')+'Submit suggestion';
 let all=[],voted=new Set(JSON.parse(localStorage.getItem('nlrp_voted')||'[]'));
 const TS={pending:'Pending',approved:'Approved',implemented:'Implemented',rejected:'Rejected'};
 function draw(){
@@ -43,7 +44,7 @@ async function status(){const s=await loadStatus();if(!s)return;$('#ip2').textCo
  const n=s.online?s.playersCount:null,m=s.online?s.maxPlayers:null;$('#sOn').textContent=n??'-';$('#pl').textContent=m?n+' / '+m:'-';$('#mt').style.width=m?Math.min(100,n/m*100)+'%':'0'}
 $('#list').onclick=async e=>{const b=e.target.closest('.vote');if(!b)return;const id=+b.dataset.id;try{const r=await api('suggestions/'+id+'/upvote',{method:'POST'});all.find(s=>s.id==id).upvotes=r.upvotes}catch(x){if(!/already/.test(x.message)){toast(x.message,1);return}}voted.add(id);localStorage.setItem('nlrp_voted',JSON.stringify([...voted]));draw()};
 ['q','fs','so'].forEach(i=>$('#'+i).addEventListener('input',draw));
-$('#de').oninput=e=>$('#cc').textContent=e.target.value.length+' / 3000';
-$('#f').onsubmit=async e=>{e.preventDefault();try{await api('suggestions',{method:'POST',body:{player_name:$('#pn').value.trim(),category:$('#cat').value,title:$('#ti').value.trim(),description:$('#de').value.trim()}});e.target.reset();$('#cc').textContent='0 / 3000';toast('Suggestion posted. Staff will review it.');load()}catch(x){toast(x.message,1)}};
+$('#pn').value=localStorage.getItem('nlrp_name')||'';$('#de').oninput=e=>$('#cc').textContent=e.target.value.length+' / 3000';
+$('#f').onsubmit=async e=>{e.preventDefault();try{await api('suggestions',{method:'POST',body:{player_name:$('#pn').value.trim(),category:$('#cat').value,title:$('#ti').value.trim(),description:$('#de').value.trim()}});const nm=$('#pn').value.trim();localStorage.setItem('nlrp_name',nm);e.target.reset();$('#pn').value=nm;$('#cc').textContent='0 / 3000';toast('Suggestion posted. Staff will review it.');load()}catch(x){toast(x.message,1)}};
 load();status();setInterval(status,30000);
 </script></body></html>

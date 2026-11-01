@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Live players | Naija Life Roleplay</title><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
+<title>Live players | Naija Life Roleplay</title><meta name="theme-color" content="#0d1110"><meta name="description" content="See who is online right now on Naija Life Roleplay."><meta property="og:title" content="Naija Life Roleplay"><meta property="og:description" content="See who is online right now on Naija Life Roleplay."><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
 <body>
 <main><div class="wrap cols">
 <div><h2>Players in game</h2>
@@ -9,7 +9,7 @@
 <aside><div class="box"><h2>Server</h2>
 <dl><dt>Status</dt><dd id="st">-</dd><dt>Name</dt><dd id="hn">-</dd><dt>Mode</dt><dd id="gm">-</dd><dt>Address</dt><dd class="mono" id="ip2">-</dd><dt>Players</dt><dd id="pl">-</dd></dl>
 <div class="meter"><i id="mt" style="width:0"></i></div>
-<a class="btn pri" id="go" href="#"></a><p style="color:var(--mute);font-size:13px;margin:12px 0 0" id="upd"></p></div></aside>
+<div class="stack"><a class="btn pri" id="go" href="#"></a></div><p style="color:var(--mute);font-size:13px;margin:12px 0 0" id="upd"></p></div></aside>
 </div></main>
 <script src="site.js"></script>
 <script>
@@ -24,4 +24,3 @@ async function load(){S=await loadStatus();draw();if(!S)return;$('#st').textCont
  const n=S.playersCount,m=S.maxPlayers;$('#pl').textContent=S.online?n+' / '+m:'-';$('#mt').style.width=S.online&&m?Math.min(100,n/m*100)+'%':'0';$('#upd').textContent='Updated '+new Date().toLocaleTimeString()}
 $('#q').oninput=draw;$('#rf').onclick=load;load();setInterval(load,15000);
 </script></body></html>
-                     
