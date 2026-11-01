@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live players | Naija Life Roleplay</title><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
+<body>
+<main><div class="wrap cols">
+<div><h2>Players in game</h2>
+<div class="bar"><input id="q" type="search" placeholder="Search by name" aria-label="Search players"><button class="btn" id="rf" type="button"></button></div>
+<div class="scroll"><table><thead><tr><th>ID</th><th>Name</th><th class="r">Score</th><th class="r">Ping</th></tr></thead><tbody id="tb"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody></table></div></div>
+<aside><div class="box"><h2>Server</h2>
+<dl><dt>Status</dt><dd id="st">-</dd><dt>Name</dt><dd id="hn">-</dd><dt>Mode</dt><dd id="gm">-</dd><dt>Address</dt><dd class="mono" id="ip2">-</dd><dt>Players</dt><dd id="pl">-</dd></dl>
+<div class="meter"><i id="mt" style="width:0"></i></div>
+<a class="btn pri" id="go" href="#"></a><p style="color:var(--mute);font-size:13px;margin:12px 0 0" id="upd"></p></div></aside>
+</div></main>
+<script src="site.js"></script>
+<script>
+shell('p');$('#rf').innerHTML=icon('refresh')+'Refresh';$('#go').innerHTML=icon('play')+'Launch SA-MP';
+let S=null;
+function draw(){const q=$('#q').value.trim().toLowerCase();
+ if(!S){$('#tb').innerHTML='<tr><td colspan="4" class="empty">Could not reach the website backend.</td></tr>';return}
+ if(!S.online){$('#tb').innerHTML='<tr><td colspan="4" class="empty">The game server did not answer the query. It may be offline or restarting.</td></tr>';return}
+ const v=S.players.filter(p=>!q||p.name.toLowerCase().includes(q));
+ $('#tb').innerHTML=v.length?v.map(p=>`<tr><td class="mono">${p.id}</td><td>${esc(p.name)}</td><td class="r mono">${p.score}</td><td class="r mono">${p.ping==null?'-':p.ping+' ms'}</td></tr>`).join(''):`<tr><td colspan="4" class="empty">${S.playersCount&&!S.players.length?'The server did not return a player list.':q?'No player matches that name.':'Nobody is online right now.'}</td></tr>`}
+async function load(){S=await loadStatus();draw();if(!S)return;$('#st').textContent=S.online?'Online':'Unreachable';$('#hn').textContent=S.hostname||'-';$('#gm').textContent=S.gamemode||'-';$('#ip2').textContent=S.ip;$('#go').href='samp://'+S.ip;
+ const n=S.playersCount,m=S.maxPlayers;$('#pl').textContent=S.online?n+' / '+m:'-';$('#mt').style.width=S.online&&m?Math.min(100,n/m*100)+'%':'0';$('#upd').textContent='Updated '+new Date().toLocaleTimeString()}
+$('#q').oninput=draw;$('#rf').onclick=load;load();setInterval(load,15000);
+</script></body></html>
+                     
