@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Staff | Naija Life Roleplay</title><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
+<body>
+<main><div class="wrap">
+<div id="lg" class="box login"><h2>Staff sign in</h2><form id="lf"><div class="fld"><label for="pw">Password</label><input id="pw" type="password" required autocomplete="current-password"></div><button class="btn pri" type="submit">Sign in</button></form></div>
+<div id="ad" hidden>
+<div class="bar" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Moderation</h2><button class="btn" id="out" type="button"></button></div>
+<div class="box" style="margin-bottom:20px"><label for="sip">Game server address (applies until the web service restarts)</label><div class="bar" style="margin:0"><input id="sip" class="mono" placeholder="IP:port"><button class="btn" id="sipb" type="button"></button></div></div>
+<div class="bar"><select id="fs" aria-label="Status"><option value="all">All</option><option value="pending" selected>Pending</option><option value="approved">Approved</option><option value="implemented">Implemented</option><option value="rejected">Rejected</option></select><span id="cnt" class="meta"></span></div>
+<div class="box" id="list"></div>
+</div></div></main>
+<script src="site.js"></script>
+<script>
+shell('a');$('#out').innerHTML=icon('out')+'Sign out';$('#sipb').innerHTML=icon('save')+'Save';
+let all=[];
+function show(on){$('#lg').hidden=on;$('#ad').hidden=!on}
+function draw(){const fs=$('#fs').value,v=all.filter(s=>fs=='all'||s.status==fs);$('#cnt').textContent=v.length+' of '+all.length;
+ $('#list').innerHTML=v.length?v.map(s=>`<article class="item" style="grid-template-columns:1fr"><div><div class="meta"><span>#${s.id}</span><span class="tag">${esc(s.category)}</span><span>${esc(s.player_name)}</span><span>${s.upvotes} votes</span></div><h3>${esc(s.title)}</h3><p>${esc(s.description)}</p><div class="adm"><div class="l"><select data-s="${s.id}" aria-label="Status"><option value="pending">Pending</option><option value="approved">Approved</option><option value="implemented">Implemented</option><option value="rejected">Rejected</option></select><input data-n="${s.id}" value="${esc(s.admin_note||'')}" placeholder="Staff note shown publicly" maxlength="1000"><button class="btn pri" data-save="${s.id}">${icon('save')}Save</button><button class="btn del" data-del="${s.id}">${icon('trash')}Delete</button></div></div></div></article>`).join(''):'<div class="empty">No suggestions in this view.</div>';
+ v.forEach(s=>$(`[data-s="${s.id}"]`).value=s.status)}
+async function load(){try{all=(await api('suggestions')).suggestions;draw()}catch(e){toast(e.message,1)}}
+function lost(e){if(/Unauthorized/.test(e.message)){sessionStorage.removeItem('nlrp_admin');show(false);toast('Session expired. Sign in again.',1)}else toast(e.message,1)}
+$('#lf').onsubmit=async e=>{e.preventDefault();try{const r=await api('admin/login',{method:'POST',body:{password:$('#pw').value}});sessionStorage.setItem('nlrp_admin',r.token);$('#pw').value='';show(true);load()}catch(x){toast(x.message,1)}};
+$('#out').onclick=()=>{sessionStorage.removeItem('nlrp_admin');show(false)};
+$('#fs').onchange=draw;
+$('#list').onclick=async e=>{const sv=e.target.closest('[data-save]'),dl=e.target.closest('[data-del]');
+ try{if(sv){const id=sv.dataset.save;await api('admin/suggestions/'+id,{method:'PATCH',body:{status:$(`[data-s="${id}"]`).value,admin_note:$(`[data-n="${id}"]`).value.trim()}});toast('Saved #'+id);load()}
+ else if(dl){const id=dl.dataset.del;if(!confirm('Delete suggestion #'+id+'? This cannot be undone.'))return;await api('admin/suggestions/'+id,{method:'DELETE'});toast('Deleted #'+id);load()}}catch(x){lost(x)}};
+$('#sipb').onclick=async()=>{try{const r=await api('admin/server-ip',{method:'POST',body:{server_address:$('#sip').value.trim()}});toast('Now querying '+r.ip)}catch(x){lost(x)}};
+loadStatus().then(s=>{if(s)$('#sip').value=s.ip});
+if(sessionStorage.getItem('nlrp_admin')){show(true);load()}
+</script></body></html>
