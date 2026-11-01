@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Suggestions | Naija Life Roleplay</title><link rel="icon" href="crest.jpg"><link rel="stylesheet" href="site.css"></head>
+<body>
+<section class="banner"><div class="wrap">
+<h1>Naija Life Roleplay</h1>
+<p class="lead">Post ideas for the server, vote on what you want to see, and read staff replies.</p>
+<div class="stats"><div class="stat"><b id="sOn">-</b><span><i class="up" id="dot"></i>Players online</span></div><div class="stat"><b id="sAll">-</b><span>Suggestions</span></div><div class="stat"><b id="sDone">-</b><span>Approved or implemented</span></div></div>
+</div></section>
+<main><div class="wrap cols">
+<div>
+<div class="box" style="margin-bottom:28px"><h2>New suggestion</h2>
+<form id="f">
+<div class="row"><div><label for="pn">In-game name</label><input id="pn" required minlength="2" maxlength="32" placeholder="Firstname_Lastname"></div>
+<div><label for="cat">Category</label><select id="cat"><option>General</option><option>Jobs &amp; Economy</option><option>Factions &amp; Police</option><option>Gangs &amp; Turfs</option><option>Vehicles &amp; Dealership</option><option>Mapping &amp; Properties</option><option>Bug Report</option></select></div></div>
+<div class="fld"><label for="ti">Title</label><input id="ti" required minlength="4" maxlength="120"></div>
+<div class="fld"><label for="de">Details <span id="cc" class="mono" style="float:right;font-weight:400;color:var(--mute)">0 / 3000</span></label><textarea id="de" required minlength="10" maxlength="3000"></textarea></div>
+<button class="btn pri" id="sub" type="submit"></button>
+</form></div>
+<h2>Community suggestions</h2>
+<div class="bar"><input id="q" type="search" placeholder="Search title, details or player" aria-label="Search"><select id="fs" aria-label="Status"><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="implemented">Implemented</option><option value="rejected">Rejected</option></select><select id="so" aria-label="Sort"><option value="top">Most upvoted</option><option value="new">Newest</option></select></div>
+<div class="box" id="list"><div class="empty">Loading...</div></div>
+</div>
+<aside><div class="box"><h2>Join the server</h2>
+<dl><dt>Address</dt><dd class="mono" id="ip2">-</dd><dt>Status</dt><dd id="st">-</dd><dt>Players</dt><dd id="pl">-</dd></dl>
+<div class="meter"><i id="mt" style="width:0"></i></div>
+<a class="btn pri" id="go" href="#">Launch SA-MP</a> <a class="btn" href="players.html">Who is online</a></div></aside>
+</div></main>
+<script src="site.js"></script>
+<script>
+shell('s');$('#sub').innerHTML=icon('send')+'Submit suggestion';
+let all=[],voted=new Set(JSON.parse(localStorage.getItem('nlrp_voted')||'[]'));
+const TS={pending:'Pending',approved:'Approved',implemented:'Implemented',rejected:'Rejected'};
+function draw(){
+ const q=$('#q').value.trim().toLowerCase(),fs=$('#fs').value;
+ let v=all.filter(s=>(fs=='all'||s.status==fs)&&(!q||(s.title+s.description+s.player_name+s.category).toLowerCase().includes(q)));
+ v.sort((a,b)=>$('#so').value=='new'?b.id-a.id:(b.upvotes-a.upvotes)||(b.id-a.id));
+ $('#list').innerHTML=v.length?v.map(s=>`<article class="item"><button class="vote" data-id="${s.id}" ${voted.has(s.id)?'disabled':''} aria-label="Upvote">${icon('up')}<span>${s.upvotes}</span></button><div><div class="meta"><span class="st ${s.status}">${TS[s.status]||s.status}</span><span class="tag">${esc(s.category)}</span><span>#${s.id}</span></div><h3>${esc(s.title)}</h3><p>${esc(s.description)}</p>${s.admin_note?`<div class="staff"><b>Staff response</b>${esc(s.admin_note)}</div>`:''}<div class="meta" style="margin-top:8px">${esc(s.player_name)} &middot; ${esc(String(s.created_at||'').replace('T',' ').slice(0,16))}</div></div></article>`).join(''):`<div class="empty">${all.length?'Nothing matches your filters.':'No suggestions yet. Post the first one.'}</div>`;
+ $('#sAll').textContent=all.length;$('#sDone').textContent=all.filter(s=>s.status=='approved'||s.status=='implemented').length;
+}
+async function load(){try{all=(await api('suggestions')).suggestions;draw()}catch(e){$('#list').innerHTML='<div class="empty">Could not load suggestions: '+esc(e.message)+'</div>'}}
+async function status(){const s=await loadStatus();if(!s)return;$('#ip2').textContent=s.ip;$('#go').href='samp://'+s.ip;$('#dot').classList.toggle('on',s.online);$('#st').textContent=s.online?'Online':'Unreachable';
+ const n=s.online?s.playersCount:null,m=s.online?s.maxPlayers:null;$('#sOn').textContent=n??'-';$('#pl').textContent=m?n+' / '+m:'-';$('#mt').style.width=m?Math.min(100,n/m*100)+'%':'0'}
+$('#list').onclick=async e=>{const b=e.target.closest('.vote');if(!b)return;const id=+b.dataset.id;try{const r=await api('suggestions/'+id+'/upvote',{method:'POST'});all.find(s=>s.id==id).upvotes=r.upvotes}catch(x){if(!/already/.test(x.message)){toast(x.message,1);return}}voted.add(id);localStorage.setItem('nlrp_voted',JSON.stringify([...voted]));draw()};
+['q','fs','so'].forEach(i=>$('#'+i).addEventListener('input',draw));
+$('#de').oninput=e=>$('#cc').textContent=e.target.value.length+' / 3000';
+$('#f').onsubmit=async e=>{e.preventDefault();try{await api('suggestions',{method:'POST',body:{player_name:$('#pn').value.trim(),category:$('#cat').value,title:$('#ti').value.trim(),description:$('#de').value.trim()}});e.target.reset();$('#cc').textContent='0 / 3000';toast('Suggestion posted. Staff will review it.');load()}catch(x){toast(x.message,1)}};
+load();status();setInterval(status,30000);
+</script></body></html>
