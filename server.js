@@ -15,6 +15,7 @@
 const express = require('express');
 const dgram = require('dgram');
 const crypto = require('crypto');
+const dns = require('dns').promises;
 const fs = require('fs');
 const path = require('path');
 
@@ -32,7 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuration via Render Environment Variables
 const PORT = Number(process.env.PORT || 3000);
-let SAMP_IP = process.env.SAMP_SERVER_IP || '51.83.49.125';
+let SAMP_IP = process.env.SAMP_SERVER_IP || 'naijalifev1.cowdie.com';
 let SAMP_PORT = Number(process.env.SAMP_SERVER_PORT || 17509);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 app.set('trust proxy', 1);
@@ -122,7 +123,16 @@ function buildSampPacket(ip, port, opcodeChar) {
   return buf;
 }
 
-function querySampOpcode(ip, port, opcodeChar, timeoutMs = 2500) {
+async function resolveIPv4(host) {
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return host;
+  return (await dns.lookup(host, { family: 4 })).address;
+}
+
+function querySampOpcode(host, port, opcodeChar, timeoutMs = 2500) {
+  return resolveIPv4(host).then((addr) => queryResolved(addr, port, opcodeChar, timeoutMs));
+}
+
+function queryResolved(ip, port, opcodeChar, timeoutMs = 2500) {
   return new Promise((resolve, reject) => {
     const socket = dgram.createSocket('udp4');
     const packet = buildSampPacket(ip, port, opcodeChar);
@@ -378,6 +388,18 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Admin page: the login shell is public at /admin, the panel itself is only sent to a signed-in admin.
+const PRIVATE_DIR = path.join(__dirname, 'private');
+app.get('/admin', (req, res) => res.sendFile(path.join(PRIVATE_DIR, 'admin-login.html')));
+app.get('/api/admin/panel', requireAdmin, (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    ok: true,
+    html: fs.readFileSync(path.join(PRIVATE_DIR, 'admin_panel.html'), 'utf8'),
+    js: fs.readFileSync(path.join(PRIVATE_DIR, 'admin_panel.js'), 'utf8')
+  });
+});
+
 // 6. Admin: Update Status / Note
 app.patch('/api/admin/suggestions/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id || 0);
@@ -434,6 +456,28 @@ app.post('/api/admin/server-ip', requireAdmin, (req, res) => {
   }
   return res.json({ ok: true, ip: `${SAMP_IP}:${SAMP_PORT}` });
 });
+
+async function onlineNames() {
+  try {
+    const info = parseSampInfo(await querySampOpcode(SAMP_IP, SAMP_PORT, 'i'));
+    if (!info.players) return [];
+    return parseSampPlayersDetailed(await querySampOpcode(SAMP_IP, SAMP_PORT, 'd', 2000)).map((p) => p.name.toLowerCase());
+  } catch (_) {
+    throw new Error('Could not check who is online (game server not answering). Try again.');
+  }
+}
+require('./gametools')(app, { pool: () => pool, requireAdmin, onlineNames });
+try {
+  require('./rcon')(app, {
+    requireAdmin,
+    target: async () => ({ ip: await resolveIPv4(SAMP_IP), port: SAMP_PORT }),
+    listPlayers: async () => {
+      const info = parseSampInfo(await querySampOpcode(SAMP_IP, SAMP_PORT, 'i'));
+      if (!info.players) return [];
+      return parseSampPlayersDetailed(await querySampOpcode(SAMP_IP, SAMP_PORT, 'd', 2000));
+    }
+  });
+} catch (e) { console.error('[NL:RP] RCON tools disabled:', e.message); }
 
 initDatabase().then(() => {
   app.listen(PORT, () => {

@@ -7,10 +7,12 @@ services:
     startCommand: npm start
     envVars:
       - key: SAMP_SERVER_IP
-        value: 51.83.49.125
+        value: naijalifev1.cowdie.com
       - key: SAMP_SERVER_PORT
         value: 17509
       - key: ADMIN_PASSWORD
+        sync: false
+      - key: RCON_PASSWORD
         sync: false
       - key: DB_HOST
         sync: false
