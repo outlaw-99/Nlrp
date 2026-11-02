@@ -1,0 +1,17 @@
+<div class="bar" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Moderation</h2><button class="btn" id="out" type="button"></button></div>
+<div class="box" style="margin-bottom:20px"><h2>Game tools</h2>
+<div class="bar"><input id="gn" placeholder="Player name (exact)" aria-label="Player name"><button class="btn" data-g="lookup">Look up</button><button class="btn" data-g="schema">Check config</button></div>
+<div class="bar"><input id="gm" type="number" min="0" placeholder="Money amount" aria-label="Money amount"><button class="btn" data-m="give">Give</button><button class="btn" data-m="take">Take</button><button class="btn" data-m="set">Set</button></div>
+<div class="bar"><input id="gl" type="number" min="0" placeholder="Admin level" aria-label="Admin level"><button class="btn" data-g="level">Set level</button><input id="gr" placeholder="Ban reason" maxlength="120" aria-label="Ban reason"><button class="btn" data-g="ban">Ban</button><button class="btn" data-g="unban">Unban</button></div>
+<div class="bar"><input id="gv" type="number" min="0" placeholder="Vehicle model (400-611)" aria-label="Vehicle model"><button class="btn" data-g="vgive">Give vehicle</button><button class="btn del" data-g="vremove">Remove vehicle</button></div>
+<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="gf" style="width:auto">Apply even if the player is online</label>
+<pre id="gout" class="mono" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 0;color:var(--mute);font-size:13px"></pre>
+<table style="margin-top:14px"><thead><tr><th>Recent actions</th><th>Target</th><th>Detail</th><th class="r">Time</th></tr></thead><tbody id="aud"></tbody></table></div>
+<div class="box" style="margin-bottom:20px"><h2>In-game control</h2>
+<div class="bar"><input id="rm" placeholder="Broadcast to everyone in game" maxlength="120" aria-label="Broadcast message"><button class="btn" id="rsay" type="button">Broadcast</button></div>
+<pre id="rout" class="mono" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 12px;color:var(--mute);font-size:13px"></pre>
+<div class="bar" style="justify-content:space-between;align-items:center"><span class="meta">Online players</span><span style="display:flex;gap:8px"><button class="btn sm" id="rtest" type="button" style="flex:none">Test RCON</button><button class="btn sm" id="rref" type="button" style="flex:none">Refresh</button></span></div>
+<table><tbody id="rpl"></tbody></table></div>
+<div class="box" style="margin-bottom:20px"><label for="sip">Game server address (applies until the web service restarts)</label><div class="bar" style="margin:0"><input id="sip" class="mono" placeholder="IP:port"><button class="btn" id="sipb" type="button"></button></div></div>
+<div class="bar"><select id="fs" aria-label="Status"><option value="all">All</option><option value="pending" selected>Pending</option><option value="approved">Approved</option><option value="implemented">Implemented</option><option value="rejected">Rejected</option></select><span id="cnt" class="meta"></span></div>
+<div class="box" id="list"></div>
